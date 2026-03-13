@@ -3,270 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>问道 H5 - 五行修仙</title>
+    <title>问道 H5 - 正版回合</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #fff;
-            overflow-x: hidden;
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            background: #0a0a0a;
+            overflow: hidden;
+            touch-action: none;
         }
         
         .game-container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 10px;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(180deg, #1a0f0f 0%, #2d1f1f 50%, #1a0f0f 100%);
         }
         
-        /* 头部信息 */
-        .header {
-            background: linear-gradient(90deg, #8b4513, #d2691e);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            border: 2px solid #ffd700;
-        }
-        
-        .player-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .player-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        .player-level {
-            background: rgba(0,0,0,0.3);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-        }
-        
-        .stats-bar {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.85em;
-        }
-        
-        .stat-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7em;
-        }
-        
-        .hp-icon { background: #e74c3c; }
-        .mp-icon { background: #3498db; }
-        .exp-icon { background: #f39c12; }
-        
-        /* 战斗场景 */
+        /* 战斗场景背景 */
         .battle-scene {
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            min-height: 300px;
-            position: relative;
-            border: 3px solid #8b4513;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 30% 70%, rgba(139, 69, 19, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, rgba(160, 82, 45, 0.2) 0%, transparent 50%),
+                linear-gradient(180deg, #0d0808 0%, #1a0f0f 30%, #2a1a1a 70%, #0d0808 100%);
+            overflow: hidden;
         }
         
-        .battle-ground {
+        /* 地面纹理 */
+        .ground-texture {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(139, 69, 19, 0.1) 20px,
+                    rgba(139, 69, 19, 0.1) 21px
+                ),
+                radial-gradient(ellipse at center, rgba(101, 67, 33, 0.4) 0%, transparent 70%);
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center bottom;
+        }
+        
+        /* 顶部信息栏 */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            padding: 0 15px;
+            z-index: 100;
         }
         
-        .character {
-            text-align: center;
-            position: relative;
+        .round-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-size: 14px;
         }
         
-        .character-avatar {
+        .round-number {
+            background: linear-gradient(135deg, #8b4513, #d2691e);
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 1px solid #ffd700;
+            font-weight: bold;
+        }
+        
+        .countdown {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        
+        .auto-btn {
+            background: linear-gradient(135deg, #2c5530, #3d7a45);
+            border: 1px solid #4a9a55;
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* 战斗记录按钮 */
+        .record-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #8b4513;
+            color: #d2691e;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* 角色站位区域 */
+        .battle-field {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 180px;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+        }
+        
+        .team-side {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
             width: 80px;
+        }
+        
+        .team-side.left {
+            align-items: flex-start;
+        }
+        
+        .team-side.right {
+            align-items: flex-end;
+        }
+        
+        /* 角色卡片 */
+        .character-card {
+            width: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .character-card.active {
+            transform: scale(1.1);
+        }
+        
+        .character-card.dead {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        
+        /* 角色立绘 */
+        .character-sprite {
+            width: 60px;
             height: 80px;
-            border-radius: 50%;
+            border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5em;
-            margin: 0 auto 10px;
-            border: 3px solid;
+            font-size: 36px;
             position: relative;
-            animation: float 3s ease-in-out infinite;
+            box-shadow: 
+                0 5px 15px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(255,255,255,0.1);
+            border: 2px solid;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        /* 阵营颜色 */
+        .team-left .character-sprite {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 50%, #1e3a5f 100%);
+            border-color: #4a90e2;
+            box-shadow: 0 0 15px rgba(74, 144, 226, 0.4);
         }
         
-        .character-avatar.player {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            border-color: #ffd700;
-            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+        .team-right .character-sprite {
+            background: linear-gradient(135deg, #5a1e1e 0%, #8f2e2e 50%, #5a1e1e 100%);
+            border-color: #e24a4a;
+            box-shadow: 0 0 15px rgba(226, 74, 74, 0.4);
         }
         
-        .character-avatar.enemy {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border-color: #8b0000;
-            box-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
-        }
-        
-        .character-avatar.pet {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            border-color: #ffd700;
-            box-shadow: 0 0 20px rgba(155, 89, 182, 0.5);
-            width: 60px;
-            height: 60px;
-            font-size: 1.8em;
-        }
-        
-        .character-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .character-element {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 0.75em;
-            margin-bottom: 5px;
-        }
-        
-        .element-metal { background: linear-gradient(135deg, #c0c0c0, #808080); }
-        .element-wood { background: linear-gradient(135deg, #27ae60, #229954); }
-        .element-water { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .element-fire { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .element-earth { background: linear-gradient(135deg, #f39c12, #d68910); }
-        
-        .hp-bar {
-            width: 100px;
-            height: 8px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 0 auto;
-        }
-        
-        .hp-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #e74c3c, #c0392b);
-            transition: width 0.3s;
-            border-radius: 4px;
-        }
-        
-        .hp-text {
-            font-size: 0.75em;
-            margin-top: 3px;
-        }
-        
-        /* 伤害数字 */
-        .damage-number {
+        /* 选中光环 */
+        .character-card.target::after {
+            content: '';
             position: absolute;
-            font-size: 1.5em;
-            font-weight: bold;
+            bottom: -10px;
+            width: 40px;
+            height: 10px;
+            background: radial-gradient(ellipse, rgba(255,215,0,0.8) 0%, transparent 70%);
+            animation: targetPulse 1s infinite;
+        }
+        
+        @keyframes targetPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+        
+        /* 血条 */
+        .hp-bar-container {
+            width: 65px;
+            margin-top: 5px;
+        }
+        
+        .hp-bar-bg {
+            height: 6px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .hp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+            transition: width 0.3s;
+            border-radius: 2px;
+        }
+        
+        .hp-bar-fill.high {
+            background: linear-gradient(90deg, #27ae60 0%, #229954 100%);
+        }
+        
+        .hp-bar-fill.medium {
+            background: linear-gradient(90deg, #f39c12 0%, #d68910 100%);
+        }
+        
+        /* 角色名 */
+        .character-name {
+            font-size: 11px;
             color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            animation: damageFloat 1s ease-out forwards;
-            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70px;
+            text-align: center;
         }
         
-        @keyframes damageFloat {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        /* 状态图标 */
+        .status-icons {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
         
-        /* 战斗日志 */
-        .battle-log {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 10px;
-            height: 100px;
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid;
+        }
+        
+        /* 底部消息区域 */
+        .message-area {
+            position: absolute;
+            bottom: 130px;
+            left: 10px;
+            right: 10px;
+            height: 80px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 5px;
+            padding: 8px;
             overflow-y: auto;
-            font-size: 0.85em;
+            font-size: 12px;
             line-height: 1.6;
+            border: 1px solid rgba(139, 69, 19, 0.3);
         }
         
-        .log-entry {
-            margin-bottom: 5px;
-            padding: 3px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        .message-item {
+            color: #aaa;
+            margin-bottom: 3px;
         }
         
-        .log-entry:last-child {
-            border-bottom: none;
+        .message-item.system {
+            color: #ffd700;
         }
         
-        .log-damage { color: #e74c3c; }
-        .log-heal { color: #27ae60; }
-        .log-buff { color: #f39c12; }
-        
-        /* 控制面板 */
-        .control-panel {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 15px;
-            padding: 15px;
-            border: 2px solid #8b4513;
+        .message-item.damage {
+            color: #ff6b6b;
         }
         
-        .skill-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+        .message-item.heal {
+            color: #4ecdc4;
+        }
+        
+        /* 底部操作栏 */
+        .action-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.95) 100%);
+            display: flex;
+            padding: 10px;
             gap: 10px;
-            margin-bottom: 15px;
+        }
+        
+        /* 左侧功能按钮 */
+        .side-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 50px;
+        }
+        
+        .side-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #2c1810, #3d2820);
+            border: 1px solid #8b4513;
+            color: #d2691e;
+            border-radius: 5px;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .side-btn-icon {
+            font-size: 16px;
+        }
+        
+        /* 技能按钮区域 */
+        .skill-area {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
         }
         
         .skill-btn {
-            padding: 12px 8px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #8b4513, #a0522d);
-            color: #fff;
-            font-size: 0.9em;
+            background: linear-gradient(135deg, #4a3728, #3d2e22);
+            border: 2px solid #8b6914;
+            border-radius: 8px;
+            color: #ffd700;
+            font-size: 11px;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid #ffd700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
             position: relative;
             overflow: hidden;
         }
         
-        .skill-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        .skill-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
         }
         
         .skill-btn:active {
             transform: scale(0.95);
+            border-color: #ffd700;
         }
         
         .skill-btn:disabled {
@@ -274,654 +390,398 @@
             cursor: not-allowed;
         }
         
+        .skill-icon {
+            font-size: 20px;
+        }
+        
         .skill-name {
             font-weight: bold;
-            margin-bottom: 3px;
         }
         
         .skill-cost {
-            font-size: 0.75em;
-            opacity: 0.8;
+            font-size: 9px;
+            color: #87ceeb;
         }
         
-        .action-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        
-        .action-btn {
-            padding: 15px 8px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-attack {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: #fff;
-        }
-        
-        .btn-defend {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: #fff;
-        }
-        
-        .btn-item {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            color: #fff;
-        }
-        
-        .btn-run {
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-            color: #fff;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        
-        /* 五行相克提示 */
-        .element-tips {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 0.85em;
-        }
-        
-        .element-cycle {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 5px;
-        }
-        
-        .element-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-        
-        /* 宠物面板 */
-        .pet-panel {
-            background: linear-gradient(135deg, #4a148c, #6a1b9a);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid #ffd700;
-        }
-        
-        .pet-title {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #ffd700;
-        }
-        
-        .pet-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .pet-avatar {
+        /* 右侧逃跑按钮 */
+        .escape-area {
             width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            border: 3px solid #ffd700;
+            flex-direction: column;
+            gap: 5px;
         }
         
-        .pet-stats {
+        .escape-btn {
             flex: 1;
-        }
-        
-        .pet-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .pet-level {
-            font-size: 0.8em;
-            opacity: 0.8;
-            margin-bottom: 5px;
-        }
-        
-        /* 菜单按钮 */
-        .menu-btn {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #8b4513, #d2691e);
-            border: 2px solid #ffd700;
-            color: #fff;
-            font-size: 1.2em;
+            background: linear-gradient(135deg, #3d2820, #2c1810);
+            border: 1px solid #8b4513;
+            color: #aaa;
+            border-radius: 5px;
+            font-size: 10px;
             cursor: pointer;
-            z-index: 100;
         }
         
-        /* 弹窗 */
-        .modal {
+        .escape-btn.primary {
+            background: linear-gradient(135deg, #8b4513, #a0522d);
+            color: #fff;
+            border-color: #ffd700;
+        }
+        
+        /* 伤害数字 */
+        .damage-popup {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
+            animation: damageFloat 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        @keyframes damageFloat {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1); opacity: 0; }
+        }
+        
+        /* 回合指示 */
+        .turn-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: turnPulse 0.5s ease-out;
+            pointer-events: none;
+            z-index: 500;
+        }
+        
+        @keyframes turnPulse {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+        
+        /* 加载画面 */
+        .loading-screen {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.8);
-            display: none;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 200;
-            padding: 20px;
+            z-index: 9999;
+            transition: opacity 0.5s;
         }
         
-        .modal.show {
-            display: flex;
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
         
-        .modal-content {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
-            width: 100%;
-            border: 3px solid #ffd700;
-            text-align: center;
-        }
-        
-        .modal-title {
-            font-size: 1.5em;
+        .game-logo {
+            font-size: 48px;
             font-weight: bold;
-            color: #ffd700;
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 20px;
         }
         
-        .modal-text {
-            margin-bottom: 20px;
-            line-height: 1.6;
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
         }
         
-        .modal-btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            background: linear-gradient(135deg, #8b4513, #d2691e);
-            color: #fff;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid #ffd700;
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff6b35);
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
-    <button class="menu-btn" onclick="showMenu()">☰</button>
-    
-    <div class="game-container">
-        <!-- 玩家信息 -->
-        <div class="header">
-            <div class="player-info">
-                <div class="player-name">⚔️ 修仙者</div>
-                <div class="player-level">Lv.<span id="playerLevel">1</span></div>
-            </div>
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <div class="stat-icon hp-icon">❤</div>
-                    <span id="playerHp">100/100</span>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon mp-icon">✦</div>
-                    <span id="playerMp">50/50</span>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon exp-icon">⭐</div>
-                    <span id="playerExp">0/100</span>
-                </div>
-            </div>
+    <!-- 加载画面 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="game-logo">⚔️ 问道 H5</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
         </div>
-        
-        <!-- 五行相克提示 -->
-        <div class="element-tips">
-            <div>五行相克：金→木→土→水→火→金</div>
-            <div class="element-cycle">
-                <div class="element-icon element-metal">金</div>
-                <span>→</span>
-                <div class="element-icon element-wood">木</div>
-                <span>→</span>
-                <div class="element-icon element-earth">土</div>
-                <span>→</span>
-                <div class="element-icon element-water">水</div>
-                <span>→</span>
-                <div class="element-icon element-fire">火</div>
-                <span>→</span>
-                <div class="element-icon element-metal">金</div>
-            </div>
-        </div>
-        
-        <!-- 宠物面板 -->
-        <div class="pet-panel" id="petPanel">
-            <div class="pet-title">🐾 出战宠物</div>
-            <div class="pet-info">
-                <div class="pet-avatar">🐯</div>
-                <div class="pet-stats">
-                    <div class="pet-name">烈焰虎</div>
-                    <div class="pet-level">Lv.1 | 火系</div>
-                    <div class="hp-bar">
-                        <div class="hp-fill" id="petHpFill" style="width: 100%"></div>
-                    </div>
-                    <div class="hp-text" id="petHp">80/80</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 战斗场景 -->
-        <div class="battle-scene">
-            <div class="battle-ground">
-                <!-- 玩家方 -->
-                <div class="character">
-                    <div class="character-avatar player" id="playerAvatar">🧙</div>
-                    <div class="character-name">修仙者</div>
-                    <div class="character-element element-water">水系</div>
-                    <div class="hp-bar">
-                        <div class="hp-fill" id="playerHpBar" style="width: 100%"></div>
-                    </div>
-                    <div class="hp-text"><span id="playerHpText">100</span>/<span id="playerMaxHp">100</span></div>
-                </div>
-                
-                <!-- VS -->
-                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;">VS</div>
-                
-                <!-- 敌方 -->
-                <div class="character">
-                    <div class="character-avatar enemy" id="enemyAvatar">👹</div>
-                    <div class="character-name" id="enemyName">野狼</div>
-                    <div class="character-element element-wood" id="enemyElement">木系</div>
-                    <div class="hp-bar">
-                        <div class="hp-fill" id="enemyHpBar" style="width: 100%"></div>
-                    </div>
-                    <div class="hp-text"><span id="enemyHpText">60</span>/<span id="enemyMaxHp">60</span></div>
-                </div>
-            </div>
-            
-            <!-- 战斗日志 -->
-            <div class="battle-log" id="battleLog">
-                <div class="log-entry">战斗开始！遇到了野狼！</div>
-            </div>
-        </div>
-        
-        <!-- 控制面板 -->
-        <div class="control-panel">
-            <div class="skill-row">
-                <button class="skill-btn" onclick="useSkill('wave')">
-                    <div class="skill-name">🌊 水波术</div>
-                    <div class="skill-cost">10 MP</div>
-                </button>
-                <button class="skill-btn" onclick="useSkill('heal')">
-                    <div class="skill-name">💚 治愈术</div>
-                    <div class="skill-cost">15 MP</div>
-                </button>
-                <button class="skill-btn" onclick="useSkill('ultimate')">
-                    <div class="skill-name">⚡ 五行破</div>
-                    <div class="skill-cost">30 MP</div>
-                </button>
-            </div>
-            
-            <div class="action-row">
-                <button class="action-btn btn-attack" onclick="playerAttack()">⚔️ 攻击</button>
-                <button class="action-btn btn-defend" onclick="playerDefend()">🛡️ 防御</button>
-                <button class="action-btn btn-item" onclick="useItem()">💊 道具</button>
-                <button class="action-btn btn-run" onclick="tryRun()">🏃 逃跑</button>
-            </div>
-        </div>
+        <div style="color: #888; margin-top: 10px; font-size: 12px;">正在进入修仙世界...</div>
     </div>
-    
-    <!-- 弹窗 -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-title" id="modalTitle">提示</div>
-            <div class="modal-text" id="modalText"></div>
-            <button class="modal-btn" onclick="closeModal()">确定</button>
+
+    <div class="game-container">
+        <div class="battle-scene">
+            <div class="ground-texture"></div>
+            
+            <!-- 顶部信息栏 -->
+            <div class="top-bar">
+                <div class="round-info">
+                    <div class="round-number">第 <span id="roundNum">1</span> 回合</div>
+                    <button class="record-btn">战斗记录</button>
+                </div>
+                <div class="countdown" id="countdown">30</div>
+                <button class="auto-btn" id="autoBtn" onclick="toggleAuto()">自动战斗</button>
+            </div>
+            
+            <!-- 战斗区域 -->
+            <div class="battle-field">
+                <!-- 敌方（左侧） -->
+                <div class="team-side left team-right" id="enemyTeam">
+                    <!-- 由JS生成 -->
+                </div>
+                
+                <!-- 我方（右侧） -->
+                <div class="team-side right team-left" id="playerTeam">
+                    <!-- 由JS生成 -->
+                </div>
+            </div>
+            
+            <!-- 消息区域 -->
+            <div class="message-area" id="messageArea">
+                <div class="message-item system">战斗开始！遭遇了花妖！</div>
+            </div>
+            
+            <!-- 操作栏 -->
+            <div class="action-bar">
+                <div class="side-buttons">
+                    <button class="side-btn" onclick="showPets()">
+                        <span class="side-btn-icon">🐯</span>
+                        <span>宠物</span>
+                    </button>
+                    <button class="side-btn" onclick="showItems()">
+                        <span class="side-btn-icon">💊</span>
+                        <span>道具</span>
+                    </button>
+                    <button class="side-btn" onclick="showDefense()">
+                        <span class="side-btn-icon">🛡️</span>
+                        <span>防御</span>
+                    </button>
+                </div>
+                
+                <div class="skill-area" id="skillArea">
+                    <button class="skill-btn" onclick="useSkill(0)">
+                        <span class="skill-icon">⚔️</span>
+                        <span class="skill-name">物理攻击</span>
+                    </button>
+                    <button class="skill-btn" onclick="useSkill(1)">
+                        <span class="skill-icon">🔥</span>
+                        <span class="skill-name">烈火术</span>
+                        <span class="skill-cost">30MP</span>
+                    </button>
+                    <button class="skill-btn" onclick="useSkill(2)">
+                        <span class="skill-icon">💧</span>
+                        <span class="skill-name">寒冰术</span>
+                        <span class="skill-cost">30MP</span>
+                    </button>
+                    <button class="skill-btn" onclick="useSkill(3)">
+                        <span class="skill-icon">⚡</span>
+                        <span class="skill-name">雷霆万钧</span>
+                        <span class="skill-cost">60MP</span>
+                    </button>
+                </div>
+                
+                <div class="escape-area">
+                    <button class="escape-btn" onclick="showCapture()">捕捉</button>
+                    <button class="escape-btn primary" onclick="tryEscape()">逃跑</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // 游戏数据
-        const player = {
-            name: '修仙者',
-            level: 1,
-            hp: 100,
-            maxHp: 100,
-            mp: 50,
-            maxMp: 50,
-            exp: 0,
-            maxExp: 100,
-            element: 'water',
-            attack: 20,
-            defense: 10
+        const gameData = {
+            round: 1,
+            countdown: 30,
+            isPlayerTurn: true,
+            autoBattle: false,
+            selectedTarget: null
         };
         
-        const pet = {
-            name: '烈焰虎',
-            level: 1,
-            hp: 80,
-            maxHp: 80,
-            element: 'fire',
-            attack: 15
-        };
+        // 我方队伍
+        const playerTeam = [
+            { id: 'p1', name: '云霄童子', emoji: '👨‍🎤', hp: 850, maxHp: 850, mp: 320, maxMp: 320, element: 'gold', isPlayer: true },
+            { id: 'p2', name: '紫霞仙子', emoji: '👩‍🎤', hp: 620, maxHp: 620, mp: 450, maxMp: 450, element: 'wood', isPet: true },
+            { id: 'p3', name: '水灵童子', emoji: '🧙‍♂️', hp: 580, maxHp: 580, mp: 380, maxMp: 380, element: 'water' },
+            { id: 'p4', name: '火云邪神', emoji: '👺', hp: 720, maxHp: 720, mp: 280, maxMp: 280, element: 'fire' },
+            { id: 'p5', name: '土行孙', emoji: '🧌', hp: 950, maxHp: 950, mp: 200, maxMp: 200, element: 'earth' }
+        ];
         
-        let enemy = {
-            name: '野狼',
-            hp: 60,
-            maxHp: 60,
-            element: 'wood',
-            attack: 12,
-            exp: 20
-        };
+        // 敌方队伍
+        const enemyTeam = [
+            { id: 'e1', name: '花妖', emoji: '🌸', hp: 420, maxHp: 420, element: 'wood' },
+            { id: 'e2', name: '花妖', emoji: '🌸', hp: 380, maxHp: 380, element: 'wood' },
+            { id: 'e3', name: '花妖首领', emoji: '🌺', hp: 850, maxHp: 850, element: 'wood', isBoss: true },
+            { id: 'e4', name: '花妖', emoji: '🌸', hp: 400, maxHp: 400, element: 'wood' },
+            { id: 'e5', name: '乌龙', emoji: '🐍', hp: 680, maxHp: 680, element: 'water' }
+        ];
         
-        let isPlayerTurn = true;
-        let isDefending = false;
-        
-        // 五行相克关系
-        const elementAdvantage = {
-            metal: 'wood',
-            wood: 'earth',
-            earth: 'water',
-            water: 'fire',
-            fire: 'metal'
-        };
-        
-        // 计算属性克制
-        function getElementBonus(attacker, defender) {
-            if (elementAdvantage[attacker] === defender) {
-                return 1.5; // 克制，伤害+50%
-            } else if (elementAdvantage[defender] === attacker) {
-                return 0.7; // 被克，伤害-30%
-            }
-            return 1.0;
+        // 初始化
+        function init() {
+            // 加载进度
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += 10;
+                document.getElementById('loadingProgress').style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                    }, 500);
+                }
+            }, 100);
+            
+            renderTeams();
+            startCountdown();
         }
         
-        // 玩家攻击
-        function playerAttack() {
-            if (!isPlayerTurn) return;
+        // 渲染队伍
+        function renderTeams() {
+            const enemyContainer = document.getElementById('enemyTeam');
+            const playerContainer = document.getElementById('playerTeam');
             
-            const bonus = getElementBonus(player.element, enemy.element);
-            const damage = Math.floor((player.attack + Math.random() * 10) * bonus);
+            enemyContainer.innerHTML = enemyTeam.map(char => createCharacterCard(char, 'enemy')).join('');
+            playerContainer.innerHTML = playerTeam.map(char => createCharacterCard(char, 'player')).join('');
+        }
+        
+        // 创建角色卡片
+        function createCharacterCard(char, side) {
+            const hpPercent = (char.hp / char.maxHp) * 100;
+            const hpClass = hpPercent > 50 ? 'high' : hpPercent > 25 ? 'medium' : '';
             
-            enemy.hp = Math.max(0, enemy.hp - damage);
-            showDamage('enemyAvatar', damage, bonus > 1 ? '#ff6b6b' : '#fff');
+            return `
+                <div class="character-card ${side}" id="${char.id}" onclick="selectTarget('${char.id}')">
+                    <div class="character-sprite" id="${char.id}-sprite">${char.emoji}</div>
+                    <div class="hp-bar-container">
+                        <div class="hp-bar-bg">
+                            <div class="hp-bar-fill ${hpClass}" style="width: ${hpPercent}%"></div>
+                        </div>
+                    </div>
+                    <div class="character-name">${char.name}</div>
+                </div>
+            `;
+        }
+        
+        // 倒计时
+        function startCountdown() {
+            setInterval(() => {
+                if (gameData.countdown > 0) {
+                    gameData.countdown--;
+                    document.getElementById('countdown').textContent = gameData.countdown;
+                } else {
+                    // 时间到，自动攻击
+                    autoAttack();
+                    gameData.countdown = 30;
+                }
+            }, 1000);
+        }
+        
+        // 自动攻击
+        function autoAttack() {
+            if (!gameData.autoBattle) return;
             
-            let logText = `你攻击了${enemy.name}，造成${damage}点伤害`;
-            if (bonus > 1) logText += ' (五行相克！)';
-            else if (bonus < 1) logText += ' (被克制...)'
-            addLog(logText, 'log-damage');
-            
-            updateUI();
-            
-            if (enemy.hp <= 0) {
-                setTimeout(() => winBattle(), 500);
-            } else {
-                isPlayerTurn = false;
-                setTimeout(enemyTurn, 1000);
+            const target = enemyTeam.find(e => e.hp > 0);
+            if (target) {
+                performAttack('p1', target.id, 150 + Math.random() * 50);
             }
         }
         
         // 使用技能
-        function useSkill(skill) {
-            if (!isPlayerTurn) return;
+        function useSkill(skillIndex) {
+            const skills = [
+                { name: '物理攻击', damage: 120, mp: 0 },
+                { name: '烈火术', damage: 280, mp: 30 },
+                { name: '寒冰术', damage: 260, mp: 30 },
+                { name: '雷霆万钧', damage: 450, mp: 60 }
+            ];
             
-            let damage = 0;
-            let cost = 0;
-            let skillName = '';
+            const skill = skills[skillIndex];
+            const target = enemyTeam.find(e => e.hp > 0);
             
-            switch(skill) {
-                case 'wave':
-                    cost = 10;
-                    skillName = '水波术';
-                    damage = Math.floor((player.attack + 20) * getElementBonus(player.element, enemy.element));
-                    break;
-                case 'heal':
-                    cost = 15;
-                    skillName = '治愈术';
-                    break;
-                case 'ultimate':
-                    cost = 30;
-                    skillName = '五行破';
-                    damage = Math.floor((player.attack + 50) * getElementBonus(player.element, enemy.element));
-                    break;
-            }
-            
-            if (player.mp < cost) {
-                showModal('提示', '法力不足！');
-                return;
-            }
-            
-            player.mp -= cost;
-            
-            if (skill === 'heal') {
-                const heal = 40;
-                player.hp = Math.min(player.maxHp, player.hp + heal);
-                addLog(`使用${skillName}，恢复${heal}点生命`, 'log-heal');
-            } else {
-                enemy.hp = Math.max(0, enemy.hp - damage);
-                showDamage('enemyAvatar', damage, '#ff6b6b');
-                let logText = `使用${skillName}，造成${damage}点伤害`;
-                if (getElementBonus(player.element, enemy.element) > 1) logText += ' (五行相克！)';
-                addLog(logText, 'log-damage');
-            }
-            
-            updateUI();
-            
-            if (enemy.hp <= 0) {
-                setTimeout(() => winBattle(), 500);
-            } else {
-                isPlayerTurn = false;
-                setTimeout(enemyTurn, 1000);
+            if (target) {
+                performAttack('p1', target.id, skill.damage + Math.random() * 50);
+                addMessage(`云霄童子使用了${skill.name}！`, 'system');
             }
         }
         
-        // 防御
-        function playerDefend() {
-            if (!isPlayerTurn) return;
-            isDefending = true;
-            addLog('你摆出了防御姿态，受到伤害减少50%', 'log-buff');
-            isPlayerTurn = false;
-            setTimeout(enemyTurn, 1000);
-        }
-        
-        // 使用道具
-        function useItem() {
-            if (!isPlayerTurn) return;
+        // 执行攻击
+        function performAttack(attackerId, targetId, damage) {
+            const targetEl = document.getElementById(targetId + '-sprite');
+            if (!targetEl) return;
             
-            if (player.hp >= player.maxHp) {
-                showModal('提示', '生命值已满！');
-                return;
+            // 显示伤害数字
+            showDamage(targetEl, Math.floor(damage));
+            
+            // 更新血量
+            const target = enemyTeam.find(e => e.id === targetId) || playerTeam.find(p => p.id === targetId);
+            if (target) {
+                target.hp = Math.max(0, target.hp - damage);
+                renderTeams();
+                
+                if (target.hp <= 0) {
+                    addMessage(`${target.name}被击败了！`, 'damage');
+                    document.getElementById(targetId).classList.add('dead');
+                }
             }
             
-            const heal = 50;
-            player.hp = Math.min(player.maxHp, player.hp + heal);
-            addLog(`使用了金疮药，恢复${heal}点生命`, 'log-heal');
-            updateUI();
-            
-            isPlayerTurn = false;
-            setTimeout(enemyTurn, 1000);
-        }
-        
-        // 逃跑
-        function tryRun() {
-            if (!isPlayerTurn) return;
-            
-            if (Math.random() > 0.5) {
-                showModal('成功', '你成功逃跑了！');
-                setTimeout(() => spawnNewEnemy(), 1500);
-            } else {
-                addLog('逃跑失败！', 'log-damage');
-                isPlayerTurn = false;
-                setTimeout(enemyTurn, 1000);
-            }
-        }
-        
-        // 敌人回合
-        function enemyTurn() {
-            const bonus = getElementBonus(enemy.element, player.element);
-            let damage = Math.floor((enemy.attack + Math.random() * 5) * bonus);
-            
-            if (isDefending) {
-                damage = Math.floor(damage * 0.5);
-                isDefending = false;
-            }
-            
-            player.hp = Math.max(0, player.hp - damage);
-            showDamage('playerAvatar', damage, '#ff6b6b');
-            
-            let logText = `${enemy.name}攻击了你，造成${damage}点伤害`;
-            if (bonus > 1) logText += ' (五行相克！)'
-            addLog(logText, 'log-damage');
-            
-            updateUI();
-            
-            if (player.hp <= 0) {
-                setTimeout(() => gameOver(), 500);
-            } else {
-                isPlayerTurn = true;
-                player.mp = Math.min(player.maxMp, player.mp + 5);
-                updateUI();
-            }
+            // 重置倒计时
+            gameData.countdown = 30;
+            gameData.round++;
+            document.getElementById('roundNum').textContent = gameData.round;
         }
         
         // 显示伤害数字
-        function showDamage(targetId, damage, color) {
-            const target = document.getElementById(targetId);
-            const damageEl = document.createElement('div');
-            damageEl.className = 'damage-number';
-            damageEl.textContent = damage;
-            damageEl.style.color = color;
-            damageEl.style.left = '50%';
-            damageEl.style.top = '0';
-            damageEl.style.transform = 'translateX(-50%)';
-            target.appendChild(damageEl);
-            setTimeout(() => damageEl.remove(), 1000);
-        }
-        
-        // 战斗胜利
-        function winBattle() {
-            player.exp += enemy.exp;
+        function showDamage(element, damage) {
+            const rect = element.getBoundingClientRect();
+            const popup = document.createElement('div');
+            popup.className = 'damage-popup';
+            popup.textContent = damage;
+            popup.style.left = rect.left + rect.width / 2 + 'px';
+            popup.style.top = rect.top + 'px';
+            document.body.appendChild(popup);
             
-            let levelUp = false;
-            if (player.exp >= player.maxExp) {
-                player.level++;
-                player.exp -= player.maxExp;
-                player.maxExp = Math.floor(player.maxExp * 1.2);
-                player.maxHp += 20;
-                player.hp = player.maxHp;
-                player.maxMp += 10;
-                player.mp = player.maxMp;
-                player.attack += 5;
-                levelUp = true;
-            }
-            
-            let msg = `战斗胜利！获得${enemy.exp}点经验`;
-            if (levelUp) msg += '\n恭喜升级！等级提升至' + player.level;
-            
-            showModal('胜利', msg);
-            setTimeout(() => spawnNewEnemy(), 2000);
+            setTimeout(() => popup.remove(), 1000);
         }
         
-        // 生成新敌人
-        function spawnNewEnemy() {
-            const enemies = [
-                { name: '野狼', hp: 60, element: 'wood', attack: 12, exp: 20 },
-                { name: '山贼', hp: 80, element: 'earth', attack: 15, exp: 30 },
-                { name: '火狐', hp: 50, element: 'fire', attack: 18, exp: 25 },
-                { name: '金甲虫', hp: 70, element: 'metal', attack: 14, exp: 28 },
-                { name: '水妖', hp: 55, element: 'water', attack: 16, exp: 24 }
-            ];
-            
-            const newEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-            enemy = { ...newEnemy, maxHp: newEnemy.hp };
-            
-            document.getElementById('enemyName').textContent = enemy.name;
-            document.getElementById('enemyElement').textContent = getElementName(enemy.element) + '系';
-            document.getElementById('enemyElement').className = 'character-element element-' + enemy.element;
-            
-            addLog(`遇到了${enemy.name}！`, '');
-            updateUI();
-            isPlayerTurn = true;
-            closeModal();
+        // 添加消息
+        function addMessage(text, type = '') {
+            const area = document.getElementById('messageArea');
+            const msg = document.createElement('div');
+            msg.className = 'message-item ' + type;
+            msg.textContent = text;
+            area.appendChild(msg);
+            area.scrollTop = area.scrollHeight;
         }
         
-        // 获取五行名称
-        function getElementName(element) {
-            const names = { metal: '金', wood: '木', water: '水', fire: '火', earth: '土' };
-            return names[element] || element;
+        // 切换自动战斗
+        function toggleAuto() {
+            gameData.autoBattle = !gameData.autoBattle;
+            document.getElementById('autoBtn').textContent = gameData.autoBattle ? '停止自动' : '自动战斗';
+            document.getElementById('autoBtn').style.background = gameData.autoBattle 
+                ? 'linear-gradient(135deg, #8b4513, #a0522d)' 
+                : 'linear-gradient(135deg, #2c5530, #3d7a45)';
         }
         
-        // 游戏结束
-        function gameOver() {
-            showModal('游戏结束', '你被打败了！刷新页面重新开始。');
-        }
+        // 其他功能按钮
+        function showPets() { addMessage('打开宠物面板...', 'system'); }
+        function showItems() { addMessage('打开道具面板...', 'system'); }
+        function showDefense() { addMessage('进入防御姿态！', 'system'); }
+        function showCapture() { addMessage('尝试捕捉...', 'system'); }
+        function tryEscape() { addMessage('逃跑成功！', 'heal'); }
+        function selectTarget(id) { gameData.selectedTarget = id; }
         
-        // 添加日志
-        function addLog(text, className) {
-            const log = document.getElementById('battleLog');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry ' + className;
-            entry.textContent = text;
-            log.appendChild(entry);
-            log.scrollTop = log.scrollHeight;
-        }
-        
-        // 更新UI
-        function updateUI() {
-            document.getElementById('playerLevel').textContent = player.level;
-            document.getElementById('playerHp').textContent = `${player.hp}/${player.maxHp}`;
-            document.getElementById('playerMp').textContent = `${player.mp}/${player.maxMp}`;
-            document.getElementById('playerExp').textContent = `${player.exp}/${player.maxExp}`;
-            
-            document.getElementById('playerHpBar').style.width = (player.hp / player.maxHp * 100) + '%';
-            document.getElementById('playerHpText').textContent = player.hp;
-            document.getElementById('playerMaxHp').textContent = player.maxHp;
-            
-            document.getElementById('enemyHpBar').style.width = (enemy.hp / enemy.maxHp * 100) + '%';
-            document.getElementById('enemyHpText').textContent = enemy.hp;
-            document.getElementById('enemyMaxHp').textContent = enemy.maxHp;
-            
-            document.getElementById('petHp').textContent = `${pet.hp}/${pet.maxHp}`;
-            document.getElementById('petHpFill').style.width = (pet.hp / pet.maxHp * 100) + '%';
-        }
-        
-        // 弹窗
-        function showModal(title, text) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalText').textContent = text;
-            document.getElementById('modal').classList.add('show');
-        }
-        
-        function closeModal() {
-            document.getElementById('modal').classList.remove('show');
-        }
-        
-        function showMenu() {
-            showModal('菜单', '等级: ' + player.level + '\n攻击: ' + player.attack + '\n防御: ' + player.defense + '\n五行: 水');
-        }
-        
-        // 初始化
-        updateUI();
+        // 启动
+        window.onload = init;
     </script>
 </body>
 </html>
